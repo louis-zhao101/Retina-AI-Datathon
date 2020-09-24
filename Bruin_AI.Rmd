@@ -1,0 +1,327 @@
+---
+title: "Datathon Submission Template"
+author: "[Retina AI](https://retina.ai)"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output: 
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+#if your machine doesn't have these libraries, use 'install.packages(<package name>)' to install first before loading
+library(glue)
+library(tidyverse)
+library(dplyr)
+library(highcharter)
+knitr::opts_chunk$set(echo = FALSE)
+#test_data1 <- read_csv('')
+#test_data2 <- read_csv('')
+#test_data3 <- read_csv('')
+```
+
+
+## Retina AI R Datathon - Submission Template
+
+*Team Name*: Bruin AI\
+*Team Members*: Louis Zhao, Sophie Yun, Ananya Sini Achan\
+*Team Members Email*: Lozhao@g.ucla.edu, yilingsophie@ucla.edu, ananyabruin22@g.ucla.edu\
+*Designated Slides*: 27, 28\
+
+```{r, include=FALSE}
+#Include your codes to read all datasets here
+#For example,
+chart_27 <- read.csv('chart_27.csv')
+chart_28 <- read_csv('chart_28.csv')
+library(data.table)
+ltv_table <- fread("ltv_table.csv")
+#orders_table <- read_csv('orders_table.csv')
+```
+
+*Directions*: Write your text and codes for Task 1, 2 and 3 in the provided space below.\
+
+Task 1 insights to the visualization can be written as plain text in the field provided below. You can also add new bullet points to each slide's insights section.\
+
+For Task 2 and 3, provide your codes in the code chunks below. If your team needs additional code chunks to run your code, you can add new code chunks.
+\pagebreak
+
+## Task 1 (Required)
+
+*Slide Number*: 27\
+
+*Key Insights min 2 / max 4*: 
+- First year retention rates has a downward trend. For each year after 2016, there is on average a 1.55 percent decrease in retention rates for the first following year without including 2020 data and 3.61 percent decrease including. Some possible explanations could be a deterioration of retention efforts on the part of the company especially with the substantial increase in customer growth, or an increase of competition within the market leading to higher turnover rates from year to year.\
+- The rate and probability of churn decreases the longer a customer stays committed towards the product. There is an average year over year 41.3 percent decrease in the percentage of customers which churn from the previous year. If we were to include 2020's data, that rate would be 28 percent. This shows that churn rate is not linear over time and there is some brand loyalty towards the product.\
+- Business Insights: Groomers is doing well with the retention rates of existing customers who are already repeat purchasers of their product. This means that if a customer has repurchased the product the following year, they are more likely to purchase the product again the next year compared to a new customer. However, Groomers is not doing well year over year in terms of retaining a consistent percentage of new customers. As the Groomer's revenue and customer base grows, the company should focus on retaining new customers at a more consistent rate. Some possible solutions could be analyzing and addressing potential market competition or improving the core customer experience.\
+\pagebreak
+
+
+*Slide Number*: 28\ 
+
+*Key Insights min 2 / max 4*: 
+- The median Lifetime Revenue (5 year) is 68.88 and the mean is 139.70. The median is much lesser than the mean (almost half of the mean). This is because the mean is sensitive to the proportion of customers that have much higher revenues when compared to the average customer. This results in a right-skewed distribution.\
+- The general trend is that the more 5-year lifetime revenue for one customer, the higher the probability that the customer will stay alive. These two factors follow a positive linear relationship. Therefore, if the company wants to improve the probability of being alive for customers who have low probability of being alive, the company should focus on the customers with low 5-year lifetime revenue.\
+- We find that for customers with lifetime revenue below the median, their probability of being alive will be more elastic. The linear relationship between lifetime revenue and probability of being alive, for customers with relatively low lifetime revenue, has a greater positive slope and a higher correspondence, compared to the linear relationship for customers with relatively high lifetime revenue. A change in lifetime revenue will result in a greater change in probability of being alive for customers with low lifetime revenue. Therefore, the company could put up more marketing campaigns or offer more resources targeted at customers with relatively low lifetime revenue so that there will be greater increase in their probability of being active.\
+\pagebreak
+
+
+
+## Task 2 (Required)
+
+```{r, include=FALSE}
+library(glue)
+library(tidyverse)
+library(highcharter)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+*Slide Number*: 27\ 
+```{r, include=TRUE}
+#Enter your codes to automize insights for the first slide here
+
+```
+```{r, include=TRUE}
+
+func <- function(slide27){
+library(dplyr)
+years_start <- unique(slide27$Series.1..y.)
+newdf <- as.data.frame(matrix(ncol =3, nrow = 0))
+for (val in years_start){
+  a = slide27[slide27$Series.1..y. == val,]
+  it <- 1
+  b = c(0)
+  c = c(0)
+  while (it < nrow(a)){
+    temp = ( a$Series.1..value.[it+1] - a$Series.1..value.[it] ) / a$Series.1..value.[it]
+    b = c(b, temp)
+    it <- it +1
+  }
+  a$Percent_Change = b
+  newdf = rbind(newdf, a)
+}
+one_year_change = (newdf[newdf$Years.Since.Joining==1,]$Percent_Change)
+one_year_change = rev(one_year_change)
+one_year_change = one_year_change[1:3]
+lin_model = lm(one_year_change ~ c(1:length(one_year_change)))
+ret1 = lin_model$coefficients[2]
+if (ret1 <0){
+  ret1_1 = 'downwards'
+  ret1_2 = 'decrease'
+  ret1_4 = 'Some possible explanations could be a deterioration of retention efforts on the part of the company especially with the substantial increase in customer growth, or an increase of competition within the market leading to higher turnover rates from year to year.'
+} else{
+  ret1_1 = 'upwards'
+  ret1_2 = 'increase'
+  ret1_4 = 'Groomers efforts in improving retention rates is working. However, competition analysis and improving customer satisfaction is still key in keeping retention rates high.'
+}
+one_year_change2020 = (newdf[newdf$Years.Since.Joining==1,]$Percent_Change)
+one_year_change2020 = rev(one_year_change2020)
+lin_model = lm(one_year_change2020 ~ c(1:length(one_year_change2020)))
+ret1_3 = lin_model$coefficients[2]
+average_retention  <- newdf %>% group_by(Years.Since.Joining) %>% summarise(real = mean(Series.1..value.), Pct = mean(Percent_Change))
+if(all(diff(average_retention$Pct[3:length(average_retention$Pct)-1])>=0)){
+  ret2 = 'decreasing'
+} else if(all(diff(average_retention$Pct[3:length(average_retention$Pct)-1])<=0)) {
+  ret2 = 'increase'
+} else {
+  ret2 = 'both increasing and decreasing'
+}
+retention_lost  = diff(average_retention$Pct)
+retention_lost[1] = -retention_lost[1]
+ret_lost_value2020 = mean(retention_lost)
+retention_lost = retention_lost[1:3]
+ret_lost_value = mean(retention_lost)
+if (ret_lost_value > 0 ){
+  churn  = 'decreases'
+  loyalty = 'some'
+} else{
+  churn = 'increases'
+  loyalty = 'no'
+}
+cat('First year rentention rates has a', ret1_1, 'trend. For each year after', min(newdf$Series.1..y.), 'there is on average of' , round(-ret1,4)*100, 'percent', ret1_2, 'in rentention rates for the first following year without including the current year\'s data and', -ret1_3*100, 'percent', ret1_2, 'including.', ret1_4, "\n", sep = ' ')
+cat('The rate and probability of churn', churn ,'the longer a customer stays committed towards the product. There is an average year over year', churn ,'of', round(ret_lost_value,4) *100, 'percent in the percentage of customers which churn from the previous year. If we were to include the current year\'s data, that rate would be', round(ret_lost_value2020,4)*100, 'percent. This shows that churn rate is not constant over time and there is', loyalty, 'brand loyalty towards the product.', sep = ' ')
+}
+func(chart_27)
+```
+
+
+\pagebreak
+
+*Slide Number*: 28\
+```{r, include=TRUE}
+#Enter your codes to automize insights for the second slide here
+
+chart28_insight1 <- function(dataframe) {
+  mean <- mean(dataframe$`Lifetime Revenue (5 year)`)
+  median <- median(dataframe$`Lifetime Revenue (5 year)`)
+  if(mean < median) {
+    comparison <- "less"
+  } else {
+    comparison <- "higher"
+    
+  }
+  cat("The median Lifetime Revenue (5 year) is", median ,"and the mean is", mean,". The median is much",comparison,"than the mean. This is because the mean is sensitive to the proportion of customers that have much",comparison,"revenues when compared to the average customer.\n")
+}
+
+find_linear_model <-function (dataframe) {
+  x <- dataframe$`Lifetime Revenue (5 year)`
+  y <- dataframe$`Series 1`
+  result <- c(0, 0)
+  verbose <- character(0)
+  
+  #build up linear models
+  m1 <- lm(y ~ x)
+  r1 <- summary(m1)$r.squared
+  slope <- summary(m1)$coefficients[2]
+  if (result[1] < r1){
+    result[1] <- r1
+    result[2] <- slope
+  }
+  
+  #remove outlier, high leverage points
+  leverage <- hatvalues(m1)
+  highLeverage <- names(leverage[which(leverage > 4/nrow(dataframe))])
+  stdResiduals <- rstandard(m1)
+  highSr <- names(stdResiduals[which(stdResiduals > 2 | stdResiduals < -2)])
+  badLeverage <- highSr[highSr %in% highLeverage]
+  chart2_outlier_removed <- dataframe[!(1:nrow(dataframe) %in% badLeverage),]
+  m2 <- lm(chart2_outlier_removed$`Series 1` ~ chart2_outlier_removed$`Lifetime Revenue (5 year)`)
+  r2 <- summary(m2)$r.squared
+  slope <- summary(m2)$coefficients[2]
+  if (result[1] < r2){
+    result[1] <- r2
+    result[2] <- slope
+  }
+   #transformation
+   zero_moved <- dataframe[dataframe$`Series 1` != 0 & dataframe$`Lifetime Revenue (5 year)` != 0, ]
+   m3_logx <- lm(zero_moved$`Series 1` ~ log(zero_moved$`Lifetime Revenue (5 year)`))
+   r3 <- summary(m3_logx)$r.squared
+   slope <- summary(m3_logx)$coefficients[2]
+   if (result[1] < r3){
+     result[1] <- r3
+     result[2] <- slope
+   }
+  m4_logy <- lm(log(zero_moved$`Series 1`) ~ zero_moved$`Lifetime Revenue (5 year)`)
+  r4 <- summary(m4_logy)$r.squared
+  slope <- summary(m4_logy)$coefficient[2]
+  if (result[1] < r4){
+    result[1] <- r4
+    result[2] <- slope
+  }
+  m5_logBoth <- lm(log(zero_moved$`Series 1`) ~ log(zero_moved$`Lifetime Revenue (5 year)`))
+  r5 <- summary(m5_logBoth)$r.squared
+  slope <- summary(m5_logBoth)$coefficient[2]
+  if (result[1] < r5){
+    result[1] <- r5
+    result[2] <- slope
+  }
+  if(result[2] > 0) {
+    sign <- "positive"
+    relations <- "higher"
+    focus <- "low"
+  }
+  else {
+    sign <- "negative"
+    relations <- "lower"
+    focus <- "high"
+  }
+  
+  cat("The general trend is that the greater the ", names(dataframe)[1], " the ", relations, " the ", names(dataframe)[2], ". These two factors follow a ", sign, " linear relationship. Therefore, if the company wants to improve ", names(dataframe)[2], ", the company should focus on the customers with ", focus, " ", names(dataframe)[1], ".", sep = "")
+} 
+
+```
+```{r}
+#devide into two groups
+find_two_slopes <- function(df) {
+  y <- df$`Series 1`
+  x <- df$`Lifetime Revenue (5 year)`
+  
+  low <- df[df$`Lifetime Revenue (5 year)` <= median(x),]
+  m1_low <- lm(low$`Series 1` ~ low$`Lifetime Revenue (5 year)`)
+  r_low <- summary(m1_low)$r.squared
+  slope_low <-summary(m1_low)$coefficient[2]
+  
+  high <- df[df$`Lifetime Revenue (5 year)` > median(x),]
+  m1_high <- lm(high$`Series 1` ~ high$`Lifetime Revenue (5 year)`)
+  r_high <- summary(m1_high)$r.squared
+  slope_high <-summary(m1_high)$coefficient[2]
+  
+  if (r_low > r_high) 
+    great_cor <- "low"
+  else
+    great_cor <- "high"
+  
+  if (slope_low > slope_high)
+    more_ela <- "low"
+  else 
+    more_ela <- "high"
+  
+   cat("We find that for customers with ", names(df)[1], " ", more_ela, "er than the median, their ", names(df)[2], " will be more elastic. The linear relationship between ", names(df)[1], " and ", names(df)[2], ", for customers with relatively ", more_ela, " lifetime revenue, has a greater slope and a ", great_cor, "er correspondence. A change in ", names(df)[1], " will result in a greater change in ", names(df)[2], " with ", more_ela, " lifetime revenue. Therefore, the company could put up more marketing campaigns or offer more resources targeted at customers with relatively ", more_ela, " lifetime revenue so that there will be greater increase in their probability of being active.", sep = "")
+}
+
+# Print automated insights. Use original .csv data from task 1 visualization. 
+
+chart28_insight1(chart_28)
+
+find_linear_model(chart_28)
+
+find_two_slopes(chart_28)
+```
+\pagebreak
+
+## Task 3 (Bonus/Optional)
+
+*Key Insights min 2 / max 4*: 
+- Changes in average retention and actually retained customers follow similar patterns every year. This is shown by the spikes in retention numbers in November and May which is then followed by a usual decrease in June. These seasonal patterns can be capitalized by the Groomer's team to push profit margins by increasing their marketing efforts to existing customers during May and November. The team should also try to explain why there is a sharp decrease in June: maybe Groomer's products are seasonal or perhaps the product exists on a two month life cycle.\
+- While retention rates were higher in 2016 and subsequently decreased every year since, the number of actually retained customers has been going up significantly. Therefore the two numbers tell different stories and this can be attributed to the rise in customer growth for Groomers. While this company has not been able to improve their retention rates as a proportion to their total customer base, they have been retaining more customers overall.\
+
+*How to read this chart*:
+- The chart on the left is retention rate by month in percentage. The y axis is the average retention rate for a month across years. The x axis marks different months of a year. Different colors indicate the different years, the darker color marks the eariler years.\
+- The chart on the right is number of actual retained customers by month. The y axis is the average number of retained customers for a month across years. The x axis marks different months of a year. Different colors indicate the different years, the darker color marks the eariler years.\
+
+```{r}
+#Enter your code here for your new visualization
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(lubridate)
+library(tidyverse)
+data <- read.csv('monthly_retention_table.csv')
+data =data %>% mutate(Date = as.Date(paste(cohort_yearmonth ,"-01",sep="")))
+newdata <- data[order(data$Date),]
+newdata <- newdata[c(-1)]
+names <- colnames(newdata)[2:54]
+newdata <-newdata %>% pivot_longer(names, names_to ='period',  values_to = 'rate')
+require(lubridate)
+newdata = newdata %>% mutate( period = Date %m+% months(as.numeric(substr(newdata$period, 7, 8))))
+
+newdata = newdata[newdata$period < '2020-06-01',]
+
+newdata2= filter(newdata, (Date <= '2018-03-01' & Date >= '2017-09-01' ))
+
+avg = newdata%>% group_by(Date) %>% summarise( avgrate = mean(rate))
+
+avg2 = newdata%>% group_by(period) %>% summarise( avgrate = mean(rate))
+
+newdata$actual <-newdata$num_new_customers*newdata$rate
+avg  <-avg %>% mutate(month = month(Date, label = TRUE), year = year(Date) )
+
+avg2  <-avg2 %>% mutate(month = month(period, label = TRUE), year = year(period) )
+avg2 <- avg2 %>% filter(period < '2020-01-01')
+graph1 <-avg2 %>%
+    ggplot(aes(x = month, y = avgrate, group = year)) +
+    geom_area(aes(fill = year), position = "stack") +
+    labs(title = "Retention Rate by Month", x = "", y = "Average Retention Rate")
+avg3 <- newdata %>% group_by(period) %>% summarise(avgrate = mean(actual))
+avg3 <- avg3 %>% filter(period < '2020-01-01')
+avg3  <-avg3 %>% mutate(month = month(period, label = TRUE), year = year(period) )
+ graph2 <- avg3 %>%
+    ggplot(aes(x = month, y = avgrate, group = year)) +
+    geom_area(aes(fill = year), position = "stack") +
+    labs(title = "Actual Rentained Customers by Month", x = "", y = "Average Retained Customers")
+ 
+figure <- ggarrange(graph1, graph2, ncol = 2)
+figure
+```
+
+\pagebreak
